@@ -13,6 +13,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   BASE_IMAGE: node
   BASE_TAG: latest
+  MAX_PAGES: 10 # pagination limit
 
 jobs:
   build:
@@ -33,10 +34,14 @@ jobs:
       run: |
         echo "Fetching all tags from Docker Hub..."
         NEXT_URL="https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/"
-        while [ -n "$NEXT_URL" ]; do
+        PAGE_COUNT=0
+        > all_tags.txt
+        while [ -n "$NEXT_URL" ] && [ "$PAGE_COUNT" -lt ${{ env.MAX_PAGES }} ]; do
           RESPONSE=$(curl -s "$NEXT_URL")
           echo "$RESPONSE" | jq -r '.results[] | .name' >> all_tags.txt
-          NEXT_URL=$(echo "$RESPONSE" | jq -r '.next')
+          NEXT_URL=$(echo "$RESPONSE" | jq -r '.next // empty')
+          PAGE_COUNT=$((PAGE_COUNT + 1))
+          echo "Fetched page $PAGE_COUNT"
         done
         echo "All tags fetched."
         cat all_tags.txt
