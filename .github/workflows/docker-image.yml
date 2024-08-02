@@ -2,7 +2,7 @@ name: Container Build
 
 on:
   push:
-    branches: [ "main", "add_tags"]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   schedule:
@@ -21,6 +21,13 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Registry Login
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Get Base Image Tags
       id: get-base-tags
