@@ -93,3 +93,17 @@ jobs:
             echo "Skipping invalid tag: $TAG"
           fi
         done
+        
+    - name: Build and Push Latest
+      run: |
+        echo "Building and pushing image with tag: latest"
+        docker build --no-cache --build-arg NODE_TAG=latest -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" .
+        if [ $? -ne 0 ]; then
+          echo "Error building image with tag: latest"
+          exit 1
+        fi
+        docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        if [ $? -ne 0 ]; then
+          echo "Error pushing image with tag: latest"
+          exit 1
+        fi
