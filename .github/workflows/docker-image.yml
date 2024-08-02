@@ -33,7 +33,18 @@ jobs:
       id: get-base-tags
       run: |
         curl -s https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/ | jq -r '.results[].name' > base_image_tags.txt
-        echo "BASE_IMAGE_TAGS=$(cat base_image_tags.txt)" >> $GITHUB_ENV
+
+    - name: Upload Base Image Tags
+      uses: actions/upload-artifact@v3
+      with:
+        name: base-image-tags
+        path: base_image_tags.txt
+
+    - name: Download Base Image Tags
+      uses: actions/download-artifact@v3
+      with:
+        name: base-image-tags
+        path: .
 
     - name: Build and Push with Original Tags
       run: |
