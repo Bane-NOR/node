@@ -29,17 +29,22 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Fetch Raw Tags Data
+    - name: Fetch All Tags
       run: |
-        echo "Fetching raw tags data from Docker Hub..."
-        curl -s https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/ > raw_tags.json
-        echo "Raw tags data fetched."
+        echo "Fetching all tags from Docker Hub..."
+        NEXT_URL="https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/"
+        while [ -n "$NEXT_URL" ]; do
+          RESPONSE=$(curl -s "$NEXT_URL")
+          echo "$RESPONSE" | jq -r '.results[] | .name' >> all_tags.txt
+          NEXT_URL=$(echo "$RESPONSE" | jq -r '.next')
+        done
+        echo "All tags fetched."
+        cat all_tags.txt
 
-    - name: Get Base Image Tags
-      id: get-base-tags
+    - name: Filter Tags
       run: |
         echo "Filtering tags..."
-        grep -oP '"name":\s*"\K[0-9]+(\.[0-9]+)*(\.[0-9]+)?(?=")' raw_tags.json | sort -u > base_image_tags.txt
+        grep -Po '^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$' all_tags.txt | sort -u > base_image_tags.txt
         echo "Filtered tags:"
         cat base_image_tags.txt
 
