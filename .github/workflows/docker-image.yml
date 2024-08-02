@@ -33,7 +33,8 @@ jobs:
     - name: Build and Push
       run: |
         for VERSION in ${{ env.VERSIONS }}; do
-          docker buildx build --build-arg NODE_VERSION=$VERSION -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" --push -f Dockerfile .
+          echo "Building and pushing image with Node.js version: $VERSION"
+          docker buildx build --no-cache --build-arg NODE_VERSION=$VERSION -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" --push -f Dockerfile .
           if [ $? -ne 0 ]; then
             echo "Error building or pushing image with version: $VERSION"
             exit 1
