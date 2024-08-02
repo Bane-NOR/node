@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   BASE_IMAGE: node
   BASE_TAG: latest
-  MAX_PAGES: 30 # pagination limit
+  VERSIONS: 18 20 22 latest
 
 jobs:
   build:
@@ -30,80 +30,12 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Fetch All Tags
+    - name: Build and Push
       run: |
-        echo "Fetching all tags from Docker Hub..."
-        NEXT_URL="https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/"
-        PAGE_COUNT=0
-        > all_tags.txt
-        while [ -n "$NEXT_URL" ] && [ "$PAGE_COUNT" -lt ${{ env.MAX_PAGES }} ]; do
-          RESPONSE=$(curl -s "$NEXT_URL")
-          echo "$RESPONSE" | jq -r '.results[] | .name' >> all_tags.txt
-          NEXT_URL=$(echo "$RESPONSE" | jq -r '.next // empty')
-          PAGE_COUNT=$((PAGE_COUNT + 1))
-          echo "Fetched page $PAGE_COUNT"
-        done
-        echo "All tags fetched."
-        cat all_tags.txt
-
-    - name: Filter Tags
-      run: |
-        echo "Filtering tags..."
-        grep -E '^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$' all_tags.txt | sort -u > base_image_tags.txt
-        echo "Filtered tags:"
-        cat base_image_tags.txt
-
-    - name: Upload Base Image Tags
-      uses: actions/upload-artifact@v4
-      with:
-        name: base-image-tags
-        path: base_image_tags.txt
-
-    - name: Download Base Image Tags
-      uses: actions/download-artifact@v4
-      with:
-        name: base-image-tags
-        path: .
-
-    - name: Build and Push with Original Tags
-      run: |
-        echo "Reading tags from file..."
-        mapfile -t TAG_ARRAY < base_image_tags.txt
-        echo "Tags to be processed:"
-        printf "%s\n" "${TAG_ARRAY[@]}"
-        if [ ${#TAG_ARRAY[@]} -eq 0 ]; then
-          echo "No tags to process. Exiting."
-          exit 1
-        fi
-        for TAG in "${TAG_ARRAY[@]}"; do
-          echo "Processing tag: $TAG"
-          if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$ ]]; then
-            echo "Building and pushing image with tag: $TAG"
-            docker build --no-cache --build-arg NODE_TAG=$TAG -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
-            if [ $? -ne 0 ]; then
-              echo "Error building image with tag: $TAG"
-              exit 1
-            fi
-            docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
-            if [ $? -ne 0 ]; then
-              echo "Error pushing image with tag: $TAG"
-              exit 1
-            fi
-          else
-            echo "Skipping invalid tag: $TAG"
+        for VERSION in ${{ env.VERSIONS }}; do
+          docker buildx build --build-arg NODE_VERSION=$VERSION -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" --push -f Dockerfile .
+          if [ $? -ne 0 ]; then
+            echo "Error building or pushing image with version: $VERSION"
+            exit 1
           fi
         done
-        
-    - name: Build and Push Latest
-      run: |
-        echo "Building and pushing image with tag: latest"
-        docker build --no-cache --build-arg NODE_TAG=latest -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" .
-        if [ $? -ne 0 ]; then
-          echo "Error building image with tag: latest"
-          exit 1
-        fi
-        docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-        if [ $? -ne 0 ]; then
-          echo "Error pushing image with tag: latest"
-          exit 1
-        fi
