@@ -29,12 +29,18 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Fetch Raw Tags Data
+      run: |
+        echo "Fetching raw tags data from Docker Hub..."
+        curl -s https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/ > raw_tags.json
+        echo "Raw tags data fetched."
+
     - name: Get Base Image Tags
       id: get-base-tags
       run: |
-        echo "Fetching tags from Docker Hub..."
-        curl -s https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+(\\.[0-9]+)*(\\.[0-9]+)?$")) | .name' > base_image_tags.txt
-        echo "Fetched tags:"
+        echo "Filtering tags..."
+        grep -oP '"name":\s*"\K[0-9]+(\.[0-9]+)*(\.[0-9]+)?(?=")' raw_tags.json | sort -u > base_image_tags.txt
+        echo "Filtered tags:"
         cat base_image_tags.txt
 
     - name: Upload Base Image Tags
@@ -52,9 +58,13 @@ jobs:
     - name: Build and Push with Original Tags
       run: |
         echo "Reading tags from file..."
-        TAGS=$(cat base_image_tags.txt | tr '\n' ',' | sed 's/,$//')
+        TAGS=$(cat base_image_tags.txt)
         echo "Tags to be processed: $TAGS"
-        IFS=',' read -r -a TAG_ARRAY <<< "$TAGS"
+        if [ -z "$TAGS" ]; then
+          echo "No tags to process. Exiting."
+          exit 1
+        fi
+        IFS=$'\n' read -d '' -r -a TAG_ARRAY < base_image_tags.txt
         for TAG in "${TAG_ARRAY[@]}"; do
           echo "Building and pushing image with tag: $TAG"
           docker build --build-arg NODE_TAG=$TAG -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
