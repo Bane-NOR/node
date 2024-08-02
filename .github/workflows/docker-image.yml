@@ -49,7 +49,7 @@ jobs:
     - name: Filter Tags
       run: |
         echo "Filtering tags..."
-        grep -Po '^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$' all_tags.txt | sort -u > base_image_tags.txt
+        grep -E '^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$' all_tags.txt | sort -u > base_image_tags.txt
         echo "Filtered tags:"
         cat base_image_tags.txt
 
@@ -68,19 +68,27 @@ jobs:
     - name: Build and Push with Original Tags
       run: |
         echo "Reading tags from file..."
-        TAGS=$(cat base_image_tags.txt)
+        mapfile -t TAG_ARRAY < base_image_tags.txt
         echo "Tags to be processed:"
-        echo "$TAGS"
-        if [ -z "$TAGS" ]; then
+        printf "%s\n" "${TAG_ARRAY[@]}"
+        if [ ${#TAG_ARRAY[@]} -eq 0 ]; then
           echo "No tags to process. Exiting."
           exit 1
         fi
-        IFS=$'\n' read -d '' -r -a TAG_ARRAY < base_image_tags.txt
         for TAG in "${TAG_ARRAY[@]}"; do
+          echo "Processing tag: $TAG"
           if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$ ]]; then
             echo "Building and pushing image with tag: $TAG"
             docker build --build-arg NODE_TAG=$TAG -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
+            if [ $? -ne 0 ]; then
+              echo "Error building image with tag: $TAG"
+              exit 1
+            fi
             docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+            if [ $? -ne 0 ]; then
+              echo "Error pushing image with tag: $TAG"
+              exit 1
+            fi
           else
             echo "Skipping invalid tag: $TAG"
           fi
