@@ -35,13 +35,13 @@ jobs:
         curl -s https://registry.hub.docker.com/v2/repositories/library/${{ env.BASE_IMAGE }}/tags/ | jq -r '.results[] | select(.name | test("^[0-9]+(\\.[0-9]+)*$")) | .name' > base_image_tags.txt
 
     - name: Upload Base Image Tags
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: base-image-tags
         path: base_image_tags.txt
 
     - name: Download Base Image Tags
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: base-image-tags
         path: .
