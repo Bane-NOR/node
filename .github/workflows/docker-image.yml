@@ -49,8 +49,10 @@ jobs:
     - name: Build and Push with Original Tags
       run: |
         TAGS=$(cat base_image_tags.txt | tr '\n' ',' | sed 's/,$//')
+        echo "Tags to be processed: $TAGS"
         IFS=',' read -r -a TAG_ARRAY <<< "$TAGS"
         for TAG in "${TAG_ARRAY[@]}"; do
-          docker build -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
+          echo "Building and pushing tag: $TAG"
+          docker build --build-arg NODE_TAG=$TAG -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
           docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
         done
