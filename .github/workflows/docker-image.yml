@@ -69,14 +69,19 @@ jobs:
       run: |
         echo "Reading tags from file..."
         TAGS=$(cat base_image_tags.txt)
-        echo "Tags to be processed: $TAGS"
+        echo "Tags to be processed:"
+        echo "$TAGS"
         if [ -z "$TAGS" ]; then
           echo "No tags to process. Exiting."
           exit 1
         fi
         IFS=$'\n' read -d '' -r -a TAG_ARRAY < base_image_tags.txt
         for TAG in "${TAG_ARRAY[@]}"; do
-          echo "Building and pushing image with tag: $TAG"
-          docker build --build-arg NODE_TAG=$TAG -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
-          docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+          if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*(\.[0-9]+)?$ ]]; then
+            echo "Building and pushing image with tag: $TAG"
+            docker build --build-arg NODE_TAG=$TAG -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG" .
+            docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+          else
+            echo "Skipping invalid tag: $TAG"
+          fi
         done
