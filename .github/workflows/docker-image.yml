@@ -11,8 +11,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  BASE_IMAGE: node
-  BASE_TAG: latest
   VERSIONS: 18 20 22 latest
 
 jobs:
