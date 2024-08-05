@@ -2,9 +2,9 @@ name: Container Build
 
 on:
   push:
-    branches: [ "main", "add_tags" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "add_tags" ]
+    branches: [ "main" ]
   schedule:
     - cron: '0 2 * * *'
 
