@@ -2,30 +2,39 @@ name: Container Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "add_tags" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "add_tags" ]
   schedule:
     - cron: '0 2 * * *'
 
-  
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  VERSIONS: 18 20 22 latest
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
     - name: Registry Login
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Build and Push
-      run: docker buildx build -t "$REGISTRY/$IMAGE_NAME:latest" --push  -f Dockerfile .
+      run: |
+        for VERSION in ${{ env.VERSIONS }}; do
+          echo "Building and pushing image with Node.js version: $VERSION"
+          docker buildx build --no-cache --build-arg NODE_VERSION=$VERSION -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" --push -f Dockerfile .
+          if [ $? -ne 0 ]; then
+            echo "Error building or pushing image with version: $VERSION"
+            exit 1
+          fi
+        done
