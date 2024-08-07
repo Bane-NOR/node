@@ -1,3 +1,3 @@
-FROM ghcr.io/bn-apps/base:latest
+FROM ghcr.io/bane-nor/base:latest
 
 RUN apk add nodejs npm
