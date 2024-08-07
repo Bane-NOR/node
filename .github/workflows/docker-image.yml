@@ -2,9 +2,9 @@ name: Container Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
     - cron: '0 2 * * *'
 
@@ -21,12 +21,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
     - name: Registry Login
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Convert IMAGE_NAME to lowercase
+      id: lowercase
+      run: echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Build and Push
       run: |
