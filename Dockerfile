@@ -2,6 +2,5 @@ FROM ghcr.io/bane-nor/base:latest
 
 ARG NODE_VERSION
 
-RUN apk add nodejs=$NODE_VERSION 
-
-RUN apk add npm
+RUN apk add --no-cache nodejs=$NODE_VERSION npm
+RUN rm -rfd /etc/apk/world
