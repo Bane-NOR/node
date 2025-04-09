@@ -1,0 +1,10 @@
+ARG NODE_VERSION=22.14.0
+FROM ghcr.io/bane-nor/base:latest
+
+RUN apk add --no-cache curl tar
+
+RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
+    | tar -xJf - -C /usr/local --strip-components=1
+
+RUN ln -s /usr/local/bin/node /usr/bin/node && \
+    ln -s /usr/local/bin/npm /usr/bin/npm
