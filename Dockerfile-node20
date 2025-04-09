@@ -1,5 +1,5 @@
-ARG NODE_VERSION=20.19.0
 FROM ghcr.io/bane-nor/base:latest
+ENV NODE_VERSION=20.19.0
 
 RUN apk add --no-cache curl tar
 
