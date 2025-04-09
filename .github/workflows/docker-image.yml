@@ -16,7 +16,7 @@ jobs:
   build:
     strategy:
       matrix:
-        version: [18.20.08,20.19.0,22.14.0]
+        version: [18.20.1-r0,20.15.1-r0,22.13.1-r0]
 
     runs-on: ubuntu-latest
     steps:
