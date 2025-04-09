@@ -35,4 +35,4 @@ jobs:
       run: echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Build and Push
-      run: docker buildx build --build-arg NODE_VERSION="${{ matrix.version }}" --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}" --push -f Dockerfile .
+      run: docker buildx build --build-arg NODE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}" --push -f Dockerfile .
