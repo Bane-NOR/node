@@ -2,6 +2,7 @@ FROM ghcr.io/bane-nor/base:latest
 
 ARG NODE_VERSION
 RUN apk add --no-cache libstdc++
+RUN arch -arm64 zsh
 RUN cd && touch .profile
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
