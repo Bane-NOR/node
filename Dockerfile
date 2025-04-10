@@ -10,7 +10,7 @@ RUN echo "export NVM_NODEJS_ORG_MIRROR=https://unofficial-builds.nodejs.org/down
 RUN echo "nvm_get_arch() { nvm_echo \"x64-musl\"; }" >> .profile
 RUN source .profile
 
-RUN "/root/.nvm/nvm.sh"
+RUN \. "/root/.nvm/nvm.sh"
 RUN nvm install $NODE_VERSION
 RUN node -v
 RUN nvm current
