@@ -2,7 +2,7 @@ name: Container Build
 
 on:
   push:
-    branches: ["main"]
+    branches: ["fix/symbol-not-found"]
   schedule:
     - cron: '0 2 * * *'
 
