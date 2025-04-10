@@ -5,6 +5,7 @@ RUN apk add --no-cache libstdc++
 RUN arch -arm64 zsh
 RUN cd && touch .profile
 
+RUN apk add -U curl bash ca-certificates openssl ncurses coreutils python3 make gcc g++ libgcc linux-headers grep util-linux binutils findutils
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
 
 RUN echo "export NVM_NODEJS_ORG_MIRROR=https://unofficial-builds.nodejs.org/download/release" >> .profile
