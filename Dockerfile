@@ -3,6 +3,7 @@ FROM ghcr.io/bane-nor/base:latest
 ARG NODE_VERSION
 RUN cd && touch .profile
 
+RUN cat /etc/alpine-release
 RUN apk add -U curl bash ca-certificates openssl ncurses coreutils python2 make gcc g++ libgcc linux-headers grep util-linux binutils findutils
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
 
