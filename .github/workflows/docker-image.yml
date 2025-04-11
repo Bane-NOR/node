@@ -16,7 +16,7 @@ jobs:
   build:
     strategy:
       matrix:
-        version: [18,20,22]
+        version: [3.17.10,3.20.6,3.21.3,latest]
 
     runs-on: ubuntu-latest
     steps:
@@ -34,5 +34,15 @@ jobs:
       id: lowercase
       run: echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+    - name: Map version to tag
+      id: map
+      run: |
+        case "${{ matrix.version }}" in
+          "3.17.10") echo "tag=18" >> $GITHUB_OUTPUT ;;
+          "3.20.6") echo "tag=20" >> $GITHUB_OUTPUT ;;
+          "3.21.3") echo "tag=22" >> $GITHUB_OUTPUT ;;
+          "latest") echo "tag=latest" >> $GITHUB_OUTPUT ;;
+        esac
+
     - name: Build and Push
-      run: docker buildx build --build-arg NODE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}" --push -f Dockerfile .
+      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}" --push -f Dockerfile .

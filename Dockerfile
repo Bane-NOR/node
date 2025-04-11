@@ -1,8 +1,4 @@
-FROM ghcr.io/bane-nor/base:latest
+ARG ALPINE_VERSION
+FROM ghcr.io/bane-nor/base:$ALPINE_VERSION
 
-ARG NODE_VERSION
-
-
-RUN apk add --no-cache --update-cache --repository https://dl-cdn.alpinelinux.org/v3.$NODE_VERSION/main nodejs=~$NODE_VERSION 
-RUN apk add npm
-
+RUN apk add nodejs npm
