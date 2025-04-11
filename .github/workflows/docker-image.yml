@@ -2,7 +2,7 @@ name: Container Build
 
 on:
   push:
-    branches: ["fix/symbol-not-found"]
+    branches: ["main"]
   schedule:
     - cron: '0 2 * * *'
 
@@ -45,4 +45,4 @@ jobs:
         esac
 
     - name: Build and Push
-      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}-V3" --push -f Dockerfile .
+      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}" --push -f Dockerfile .
