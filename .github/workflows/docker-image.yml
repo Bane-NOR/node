@@ -16,7 +16,7 @@ jobs:
   build:
     strategy:
       matrix:
-        version: [18,20,22]
+        version: [3.17.10,3.20.6,3.21.3,latest]
 
     runs-on: ubuntu-latest
     steps:
@@ -35,4 +35,4 @@ jobs:
       run: echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Build and Push
-      run: docker buildx build --build-arg NODE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}-V2" --push -f Dockerfile .
+      run: docker buildx build --build-arg NODE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.version }}-V3" --push -f Dockerfile .
