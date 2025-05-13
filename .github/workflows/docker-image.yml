@@ -50,4 +50,4 @@ jobs:
   
     - name: Build and Push with Dockerfile-node20
       if: ${{ matrix.version == '3.20.6' }}
-      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}test" --push -f Dockerfile-node20 .
+      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}" --push -f Dockerfile-node20 .
