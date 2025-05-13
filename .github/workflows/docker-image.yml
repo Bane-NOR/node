@@ -2,7 +2,7 @@ name: Container Build
 
 on:
   push:
-    branches: ["main"]
+    branches: ["fix/auto-pull-node-images"]
   schedule:
     - cron: '0 2 * * *'
 
@@ -16,7 +16,7 @@ jobs:
   build:
     strategy:
       matrix:
-        version: [3.17.10,3.20.6,3.21.3,latest]
+        version: [18,20,22,latest]
 
     runs-on: ubuntu-latest
     steps:
@@ -34,20 +34,18 @@ jobs:
       id: lowercase
       run: echo "IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+    - name: Find Node versions
+      id: find-versions
+      run: docker pull node:${{ matrix.version }} && docker inspect node:${{ matrix.version }} | jq '.[0].Config.Env[] | select(startswith("NODE_VERSION="))' >> $GITHUB_OUTPUT
     - name: Map version to tag
       id: map
       run: |
         case "${{ matrix.version }}" in
-          "3.17.10") echo "tag=18" >> $GITHUB_OUTPUT ;;
-          "3.20.6") echo "tag=20" >> $GITHUB_OUTPUT ;;
-          "3.21.3") echo "tag=22" >> $GITHUB_OUTPUT ;;
+          "18") echo "tag=18" >> $GITHUB_OUTPUT ;;
+          "20") echo "tag=20" >> $GITHUB_OUTPUT ;;
+          "22") echo "tag=22" >> $GITHUB_OUTPUT ;;
           "latest") echo "tag=latest" >> $GITHUB_OUTPUT ;;
         esac
 
     - name: Build and Push
-      if: ${{ matrix.version != '3.20.6' }}
-      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}" --push -f Dockerfile .
-  
-    - name: Build and Push with Dockerfile-node20
-      if: ${{ matrix.version == '3.20.6' }}
-      run: docker buildx build --build-arg ALPINE_VERSION=${{ matrix.version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}" --push -f Dockerfile-node20 .
+      run: docker buildx build --build-arg NODE_VERSION=${{ steps.find-versions.outputs }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}test-preview" --push -f Dockerfile .
