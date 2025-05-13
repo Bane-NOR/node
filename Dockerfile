@@ -1,7 +1,7 @@
 FROM ghcr.io/bane-nor/base:3.20.6
 
 ARG NODE_VERSION
-ENV NODE_VERSION=NODE_VERSION
+ENV NODE_VERSION=$NODE_VERSION
 
 RUN echo "Node version: $NODE_VERSION" && addgroup -g 1000 node \
     && adduser -u 1000 -G node -s /bin/sh -D node \

@@ -36,7 +36,10 @@ jobs:
 
     - name: Find Node versions
       id: find-versions
-      run: docker pull node:${{ matrix.version }} && docker inspect node:${{ matrix.version }} | jq '.[0].Config.Env[] | select(startswith("NODE_VERSION="))' >> $GITHUB_OUTPUT
+      run: |
+        docker pull node:${{ matrix.version }}
+        NODE_VERSION=$(docker inspect node:${{ matrix.version }} | jq -r '.[0].Config.Env[] | select(startswith("NODE_VERSION="))' | cut -d '=' -f 2)
+        echo "node_version=$NODE_VERSION" >> $GITHUB_OUTPUT
     - name: Map version to tag
       id: map
       run: |
@@ -45,7 +48,6 @@ jobs:
           "20") echo "tag=20" >> $GITHUB_OUTPUT ;;
           "22") echo "tag=22" >> $GITHUB_OUTPUT ;;
           "latest") echo "tag=latest" >> $GITHUB_OUTPUT ;;
-        esac
 
     - name: Build and Push
-      run: docker buildx build --build-arg NODE_VERSION=${{ steps.find-versions.outputs }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}test-preview" --push -f Dockerfile .
+      run: docker buildx build --build-arg NODE_VERSION=${{ steps.find-versions.outputs.node_version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}test-preview" --push -f Dockerfile .
