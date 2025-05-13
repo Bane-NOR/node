@@ -19,9 +19,7 @@ RUN addgroup -g 1000 node \
         make \
         python3 \
         py-setuptools \
-    # use pre-existing gpg directory, see https://github.com/nodejs/docker-node/pull/1895#issuecomment-1550389150
     && export GNUPGHOME="$(mktemp -d)" \
-    # gpg keys listed at https://github.com/nodejs/node#release-keys
     && for key in \
       C0D6248439F1D5604AAFFB4021D900FFDB233756 \
       DD792F5973C6DE52C432CBDAC77ABFA00DDBF2B7 \
@@ -46,10 +44,9 @@ RUN addgroup -g 1000 node \
     && ./configure \
     && make -j$(getconf _NPROCESSORS_ONLN) V= \
     && make install \
-    && apk del .build-deps-full \
     && cd .. \
     && rm -Rf "node-v$NODE_VERSION" \
-    && rm "node-v$NODE_VERSION.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt; \
+    && rm "node-v$NODE_VERSION.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
   && rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
   # Remove unused OpenSSL headers to save ~34MB. See this NodeJS issue: https://github.com/nodejs/node/issues/46451
   && find /usr/local/include/node/openssl/archs -mindepth 1 -maxdepth 1 ! -name "$OPENSSL_ARCH" -exec rm -rf {} \; \
