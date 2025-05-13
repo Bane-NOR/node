@@ -48,6 +48,7 @@ jobs:
           "20") echo "tag=20" >> $GITHUB_OUTPUT ;;
           "22") echo "tag=22" >> $GITHUB_OUTPUT ;;
           "latest") echo "tag=latest" >> $GITHUB_OUTPUT ;;
+        esac
 
     - name: Build and Push
       run: docker buildx build --build-arg NODE_VERSION=${{ steps.find-versions.outputs.node_version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}test-preview" --push -f Dockerfile .
