@@ -2,7 +2,7 @@ name: Container Build
 
 on:
   push:
-    branches: ["fix/auto-pull-node-images"]
+    branches: ["main"]
   schedule:
     - cron: '0 2 * * *'
 
@@ -51,4 +51,4 @@ jobs:
         esac
 
     - name: Build and Push
-      run: docker buildx build --build-arg NODE_VERSION=${{ steps.find-versions.outputs.node_version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}test-preview" --push -f Dockerfile .
+      run: docker buildx build --build-arg NODE_VERSION=${{ steps.find-versions.outputs.node_version }} --platform linux/amd64 -t "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.map.outputs.tag }}" --push -f Dockerfile .
