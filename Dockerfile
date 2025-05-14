@@ -1,4 +1,4 @@
-FROM ghcr.io/bane-nor/base:3.20.6
+FROM ghcr.io/bane-nor/base:latest
 
 ARG NODE_VERSION
 ENV NODE_VERSION=$NODE_VERSION
