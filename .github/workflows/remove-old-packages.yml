@@ -1,0 +1,60 @@
+name: Delete Old Packages
+on:
+  workflow_run:
+    workflows: ["Container Build"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+jobs:
+  find-and-delete-old-packages:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Generate GitHub App token
+          id: generate-token
+          uses: actions/create-github-app-token@v1
+          with:
+            app-id: ${{ vars.GH_MGMT_APP_ID }}
+            private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+            owner: ${{ github.repository_owner }}
+
+        - name: Declare repository name
+          id: declare-repo
+          run: | 
+            FULL_REPO_NAME="${{ github.repository }}"
+            ORG_NAME="${{ github.repository_owner }}"
+            REPO_NAME=${FULL_REPO_NAME#"$ORG_NAME/"}
+            echo "REPO_NAME=${REPO_NAME}" >> $GITHUB_ENV
+
+        - name: Find old packages
+          id: old-packages
+          env:
+            GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+            REPO_NAME: ${{ env.REPO_NAME }}
+          run: |
+            DATE_90_DAYS_AGO=$(date -d '-90 days' '+%Y-%m-%dT%H:%M:%SZ')
+            PACKAGE_IDS=$(curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ env.GH_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/orgs/Bane-NOR/packages/container/${{ env.REPO_NAME }}/versions?per_page=100 \
+            | jq -r ".[] | select(.created_at < \"$DATE_90_DAYS_AGO\") | .id" | xargs)
+            PACKAGE_IDS_COMMA=$(echo $PACKAGE_IDS | tr ' ' ',')
+            COUNT=$(echo $PACKAGE_IDS | wc -w)
+            echo "PACKAGE_IDS=${PACKAGE_IDS_COMMA}" >> $GITHUB_ENV
+            echo "count=$COUNT" >> $GITHUB_OUTPUT
+        
+        - name: delete-package-action
+          if: steps.old-packages.outputs.count > 1
+          uses: actions/delete-package-versions@v5
+          with:
+            package-type: container
+            package-name: ${{ env.REPO_NAME }}
+            package-version-ids: ${{ env.PACKAGE_IDS }}
+            delete-only-untagged-versions: true
